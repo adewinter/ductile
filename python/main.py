@@ -2,55 +2,136 @@ import keyboard
 from typing import Optional
 from ctypes import wintypes, windll, create_unicode_buffer, byref
 import ctypes
-import wmi
 import os
+from time
+from pathlib import Path
+
+from constants import NON_ACTIONABLE_KEYS
 
 PROCESS_QUERY_INFORMATION = 0x0400
 
-Psapi = ctypes.WinDLL('Psapi.dll')
+Psapi = ctypes.WinDLL("Psapi.dll")
 GetProcessImageFileName = Psapi.GetProcessImageFileNameA
 GetProcessImageFileName.restype = ctypes.wintypes.DWORD
 
-Kernel32 = ctypes.WinDLL('kernel32.dll')
+Kernel32 = ctypes.WinDLL("kernel32.dll")
 OpenProcess = Kernel32.OpenProcess
 OpenProcess.restype = ctypes.wintypes.HANDLE
 MAX_PATH = 260
 
-def getForegroundWindowTitle() -> Optional[str]:
-    hWnd = windll.user32.GetForegroundWindow()
-    length = windll.user32.GetWindowTextLengthW(hWnd)
-    buf = create_unicode_buffer(length + 1)
-    windll.user32.GetWindowTextW(hWnd, buf, length + 1)
 
-    procId = wintypes.DWORD(0)
+class Blob:
+    """
+    Base class for storing a variable amount of string data.  Typically a blob would wrap a regular text file
+    but could actually be anything capable of reading and writing data
+    """
+    def __init__(self, name): 
+        self.name = blobName
+        self.last_touch = time.time()
+        self.is_active = True
 
-    threadid = windll.user32.GetWindowThreadProcessId(hWnd, byref(procId))
-    hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, False, procId)
-    if hProcess:
-        ImageFileName = (ctypes.c_char*MAX_PATH)()
-        # print(f"IMAGEFILENAME: {ImageFileName}")
-        if GetProcessImageFileName(hProcess, ImageFileName, MAX_PATH)>0:
-            filename = os.path.basename(ImageFileName.value)
-            print(f"FILENAME:{filename}")
-    # print(f"threadid: {threadid}, procId:{procId}")
-    
-    # 1-liner alternative: return buf.value if buf.value else None
-    if buf.value:
-        return buf.value
-    else:
-        return None
+    def getAllData(self):
+        pass
+
+    def getLastLine(self):
+        pass
+
+    def writeLine(self, line):
+        pass
+
+    def close(self):
+        """
+        close up whatever needs to be closed and mark self as .is_active = False
+        """
+        pass
+
+
+class FileBlob(Blob):
+    FILE_BLOB_FOLDER = Path('data/')
+    def __init__(self, name):
+        super.__init__(name)
+        self.FILE_PATH = FILE_BLOB_FOLDER / name
+        try:
+            self.file = open(self.FILE_PATH)
+        except OSError as e:
+            print(f"Could not open file {self.FILE_PATH}:", e)
+            self.is_active = False
+
+    def getAllData(self):
+        if self.is_active:
+            return self.file.readlines()
+        raise ValueError(f"This FileBlob is already marked as inactive. File: {self.FILE_PATH")
+            return None
+
+    def close(self):
+        self.file.close()
+        self.is_active = False
 
 
 
 
-def something(event):
-    if (event.event_type == 'down'):
-        print(f"Event:: Window Name:{getForegroundWindowTitle()}, Name:{event.name}, scan_code:{event.scan_code}, time:{event.time}")
+class Main:
+    def __init__(self):
+        self.captured_data = ""
 
-keyboard.hook(something)
-keyboard.wait('esc')
+    def removeLastChar(self):
+        size = len(self.captured_data)
+        if len(size == 0):
+            return
+        self.captured_data = self.captured_data[0 : size - 1]
 
-c = wmi.WMI ()
-print(c)
-for process in c.Win32_Process ():
-  print("hello", process.ProcessId, process.Name)
+    def addData(self, inputKey):
+        if inputKey.name == "backspace":
+            self.removeLastChar()
+        print(inputKey)
+
+    def getWindowInfo(self):
+        hWnd = windll.user32.GetForegroundWindow()
+        length = windll.user32.GetWindowTextLengthW(hWnd)
+        window_title_buffer = create_unicode_buffer(length + 1)
+        windll.user32.GetWindowTextW(hWnd, window_title_buffer, length + 1)
+
+        process_id = wintypes.DWORD(0)
+
+        thread_id = windll.user32.GetWindowThreadProcessId(hWnd, byref(process_id))
+        process_handle = OpenProcess(PROCESS_QUERY_INFORMATION, False, process_id)
+        process_file_name = None
+        process_file_path_buffer = (ctypes.c_char * MAX_PATH)()
+        if process_handle:
+
+            if (
+                GetProcessImageFileName(
+                    process_handle, process_file_path_buffer, MAX_PATH
+                )
+                > 0
+            ):
+                process_file_name = os.path.basename(process_file_path_buffer.value)
+
+        return {
+            "title": window_title_buffer.value,
+            "process_id": process_id,
+            "thread_id": thread_id,
+            "process_file_name": process_file_name,
+            "process_file_path": process_file_path_buffer.value,
+        }
+
+    def handle_key(self, event):
+        # print(dir(event))
+        # breakpoint()
+        # print(
+        #     f"event.device:{event.device},event.event_type:{event.event_type},event.is_keypad:{event.is_keypad},event.modifiers:{event.modifiers},event.name:{event.name},event.scan_code:{event.scan_code},event.time:{event.time},event.to_json:{event.to_json}"
+        # )
+        if event.event_type == "down":
+            window_info = self.getWindowInfo()
+            if event.name in NON_ACTIONABLE_KEYS:
+                print(f"NON TEXT KEY: {event.name}")
+            else:
+                print(
+                    f"[{event.name}][{window_info['process_file_name']}][{window_info['title']}]"
+                )
+
+
+if __name__ == "__main__":
+    app = Main()
+    keyboard.hook(app.handle_key)
+    keyboard.wait("esc")
