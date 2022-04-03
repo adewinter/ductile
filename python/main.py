@@ -3,7 +3,8 @@ from typing import Optional
 from ctypes import wintypes, windll, create_unicode_buffer, byref
 import ctypes
 import os
-from time
+
+# from time
 from pathlib import Path
 
 from constants import NON_ACTIONABLE_KEYS
@@ -25,7 +26,8 @@ class Blob:
     Base class for storing a variable amount of string data.  Typically a blob would wrap a regular text file
     but could actually be anything capable of reading and writing data
     """
-    def __init__(self, name): 
+
+    def __init__(self, name):
         self.name = blobName
         self.last_touch = time.time()
         self.is_active = True
@@ -47,7 +49,8 @@ class Blob:
 
 
 class FileBlob(Blob):
-    FILE_BLOB_FOLDER = Path('data/')
+    FILE_BLOB_FOLDER = Path("data/")
+
     def __init__(self, name):
         super.__init__(name)
         self.FILE_PATH = FILE_BLOB_FOLDER / name
@@ -60,14 +63,13 @@ class FileBlob(Blob):
     def getAllData(self):
         if self.is_active:
             return self.file.readlines()
-        raise ValueError(f"This FileBlob is already marked as inactive. File: {self.FILE_PATH")
-            return None
+        raise ValueError(
+            f"This FileBlob is already marked as inactive. File: {self.FILE_PATH}"
+        )
 
     def close(self):
         self.file.close()
         self.is_active = False
-
-
 
 
 class Main:
