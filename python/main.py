@@ -38,7 +38,7 @@ class Blob:
     def getLastLine(self):
         pass
 
-    def writeLine(self, line):
+    def saveString(self, line):
         pass
 
     def close(self):
@@ -55,17 +55,41 @@ class FileBlob(Blob):
         super.__init__(name)
         self.FILE_PATH = FILE_BLOB_FOLDER / name
         try:
-            self.file = open(self.FILE_PATH)
+            self.file = open(self.FILE_PATH, 'r+b')
         except OSError as e:
             print(f"Could not open file {self.FILE_PATH}:", e)
             self.is_active = False
 
+    def checkActiveOrRaise(self):
+        if not self.is_active:
+            raise Exception(f"This FileBlob is already marked as inactive. File: {self.FILE_PATH}")
+
     def getAllData(self):
-        if self.is_active:
-            return self.file.readlines()
-        raise ValueError(
-            f"This FileBlob is already marked as inactive. File: {self.FILE_PATH}"
-        )
+        self.checkActiveOrRaise()
+        out = self.file.readlines()
+        self.file.seek(0)
+        return out
+
+    def saveString(self, line):
+        """
+        Save the provided string to the end of the file
+        """
+        self.checkActiveOrRaise()
+        self.file.write(line)
+
+    def getLastLine(self):
+        """
+        Maybe not super efficient but I'll burn that bridge if I get to it
+        """
+        out = self.file.readlines()[-1]
+        self.file.seek(0)
+        return out
+
+    def handleBackspaceChar(self):
+        """
+        If the 'backspace' key is pressed, we need to delete the last character from the file.
+        """
+        if self.file.tell() == 0
 
     def close(self):
         self.file.close()
