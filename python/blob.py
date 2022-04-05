@@ -35,12 +35,11 @@ class Blob:
 
 
 class FileBlob(Blob):
-    FILE_BLOB_FOLDER = Path("data")
-
-    def __init__(self, name, process_info):
+    def __init__(self, name, data_folder, process_info):
         super().__init__(name)
         self.write_counter = 0  # used for periodically `flush`ing the file object
-        self.FILE_PATH = FileBlob.FILE_BLOB_FOLDER / name
+        self.FILE_BLOB_FOLDER = Path(data_folder)
+        self.FILE_PATH = self.FILE_BLOB_FOLDER / name
 
         is_active, blob_file = self._get_or_create_file()
         self.file = blob_file
@@ -100,7 +99,6 @@ FileBlob info:
         self.file.seek(0)
         return out
 
-
     def save_keystroke(self, event):
         if DEBUG and DEBUG_VERBOSE:
             print(f"key is:{event.name}")
@@ -110,7 +108,6 @@ FileBlob info:
             if DEBUG and DEBUG_VERBOSE:
                 print(f"skipping key: {event.name}")
             return
-
 
         if len(actionable_events) > 1:
             keystroke = self._generate_compound_keystroke(actionable_events)
@@ -130,7 +127,6 @@ FileBlob info:
     def _generate_compound_keystroke(self, actionable_events):
         runes = "+".join([event.name for event in actionable_events])
         return f"[{runes}]"
-
 
     def _save_string(self, line):
         """
