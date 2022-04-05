@@ -34,6 +34,8 @@ There are some config values you can tweak. Take a look in the `python/config.py
 
 ## Install/Setup
 
+NOTE: Currently only supports Windows but other operating systems should be real trivial to make happen if anyone ever requests it (or I get un-lazy).
+
 Prereqs: Python 3.x (ideally 3.10) and pipenv
 
 -   Clone this repo
