@@ -24,13 +24,7 @@ The following caveats apply:
 
 ## How are the text files organized/How does this thing work?
 
-Basically: Anything you type is stored in a 'blob'. Each file in the data folder represents a blob. File names take the following format `[process_name]__[window_title_hash].md`, with all files stored in the `data/` dir by default but you can specify some other directory by using the command line argument `--data-folder` [see usage section below].
-
-`process_name` is the name of the process responsible for the window that you are typing in, as reported by your operating system (e.g. "slack.exe").
-
-`window_title_hash` is an MD5 hash of the title of the window you are actively typing in. The title has some mild processing applied (e.g. removing non-ascii characters and spurious whitespace) to keep the hash consistent in apps that like to add status icons to the title depending on what you're doing or file state. Window titles often change based on what you're doing in the window. For example the format for Slack window titles is roughly `Slack | channel_name | organization_name`. With the way hashing/blob file naming works, you should therefore automatically end up with a blob for every channel you type in, in the case of slack. Similarly, for example, in Sublime text, a new blob is generated for every tab I type in.
-
-There are some config values you can tweak. Take a look in the `python/config.py` file. Some things you can alter include saving "compound" keys to blobs (so you could record stuff like [ctrl+s] instead of that chord/compound just being ignored by Ductile), and how window titles are processed/cleaned up before a hash is generated for them.
+Basically: Anything you type on your keyboard is stored in a Sqlite database named: `keystrokes.sqlite3`. Use your favorite sqlite/db viewer to have a look at the data and slice and dice to your heart's content.
 
 ## Install/Setup
 
@@ -59,10 +53,7 @@ python python/main.py --data-folder path/to/data/dir
 
 ## Future plans
 
--   Store a mapping of the blob filenames (Where all the typing is stored) in either a dedicated index file or in a sqlite DB, depending on what's more useful/easier
 -   Somehow convert this thing into a binary so you don't have to fiddle with installing python/pipenv and can easily run it as a service/daemon that can be restarted as needed
 -   Sync functionality so it'll auto backup to your cloud provider of choice (nextcloud, dropbox, etc)
--   Use a better file extension for the blob files. .MD just makes no sense (mostly because there's a lot of jank if you use text shortcut keys like ctrl+del)
--   Deal with text shortcut keys (like ctrl+del or ctrl+arrow-key) so there's less jank in the saved files. Might be straightforward if we limit ourselves to ones that purely move the cursor around and not the more complex moves that do things like select a block of text (e.g. ctrl+shift+arrow-key, especially if you then hit delete to nuke the highlighted text).
--   Build a tool on top of the raw blob storage, so you can start e.g. extracting, finding, tagging stuff for later use. Don't need to open your note-taking app to save a todo, start typing into literally any input box and slap a #todo on there. Done.
+-   Build a tool on top of the raw storage, so you can start e.g. extracting, finding, tagging stuff for later use. Don't need to open your note-taking app to save a todo, start typing into literally any input box and slap a #todo on there. Done.
 -   Consider automated processes that can be triggered off of the above layer. E.g. If we write a command phrase like #todo it'll automatically email the surrounding text you wrote to a specific address, or send the data to IFTTT or some other automation pipeline. Automatically add #reminders to your calendar. Start treating your keyboard like an actuation device. Type #@!LIGHTSOFF and your smart-home lights turn off.
