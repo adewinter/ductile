@@ -9,13 +9,6 @@ class ActivityStore:
 
         db.create_tables(self.db_connection)
 
-        # dummy_context = json.loads(example_context)
-        # print(dummy_context, "HERE")
-        # self.save_keyboard_activity("[CTRL]", dummy_context)
-        # self.save_keyboard_activity("[CTRL2]", dummy_context)
-        # self.save_keyboard_activity("[CTRL3]", dummy_context)
-        # self.shutdown()
-
     def _generate_cache_key_from_context(self, context):
         return f"{context['title']}::{context['process_file_path']}:{context['process_id']}:{context['thread_id']}"
 

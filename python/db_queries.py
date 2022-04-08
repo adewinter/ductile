@@ -8,20 +8,6 @@ CREATE TABLE IF NOT EXISTS keystrokes (
 );
 """
 
-
-"""
-{
-    "title": "Extract Compressed (Zipped) Folders",
-    "process_id": 6040,
-    "thread_id": 3192,
-    "process_file_name": "explorer.exe",
-    "process_file_path": "\\Device\\HarddiskVolume3\\Windows\\explorer.exe",
-    "processed_title": "Extract Compressed (Zipped) Folders",
-    "processed_title_hash": "c2fc41e56fd1be55e6c3711490be4231",
-    "blob_name": "explorer.exe__c2fc41e56fd1be55e6c3711490be4231.md"
-}
-"""
-
 create_procinfo_table = """
 CREATE TABLE IF NOT EXISTS procinfos(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
