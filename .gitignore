@@ -1,3 +1,5 @@
 data/
 *.pyc
 *.sqlite3
+*.log
+*.sqlite3.bak

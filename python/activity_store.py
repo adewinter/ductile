@@ -1,9 +1,12 @@
 import db
 import json
+import logging
 
 
 class ActivityStore:
     def __init__(self):
+        self.logger = logging.getLogger("ductile.activity_store")
+        self.logger.debug("Initializing ActivityStore")
         self.db_connection = db.create_connection("keystrokes.sqlite3")
         self.context_cache = {}
 
@@ -15,7 +18,9 @@ class ActivityStore:
     def _get_context_id(self, context):
         key = self._generate_cache_key_from_context(context)
         if key not in self.context_cache:
+            self.logger.debug(f"Saving new cache context: {context}")
             context_id = db.save_context(self.db_connection, context)
+            self.context_cache[key] = context_id
         else:
             context_id = self.context_cache[key]
 
@@ -43,9 +48,5 @@ class ActivityStore:
         pass
 
     def shutdown(self):
+        self.logger.info("Shutting down ActivityStore.")
         self.db_connection.close()
-
-
-example_context = '{"title":"Extract Compressed (Zipped) Folders","process_id":6040,"thread_id":3192,"process_file_name":"explorer.exe","process_file_path":"\\\\Device\\\\HarddiskVolume3\\\\Windows\\\\explorer.exe","processed_title":"Extract Compressed (Zipped) Folders","processed_title_hash":"c2fc41e56fd1be55e6c3711490be4231","blob_name":"explorer.exe__c2fc41e56fd1be55e6c3711490be4231.md"}'
-if __name__ == "__main__":
-    activity_store = ActivityStore()
