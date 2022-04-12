@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 keyboard = "*"
+psycopg = {extras = ["binary"], version = "*"}
 
 [dev-packages]
 

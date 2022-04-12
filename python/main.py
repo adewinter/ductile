@@ -26,7 +26,7 @@ class Ductile:
         self.activity_store = ActivityStore()
         self.logger = logging.getLogger("ductile")
         self._flush_counter = 0
-        self._flush_count = 10
+        self._flush_count = 100
         self._debug_log_keys = []
 
     def handle_quit(self):
@@ -59,6 +59,7 @@ class Ductile:
                 self.logger.debug(
                     f"Last {self._flush_count} captured events: {']'.join(['[' + x for x in self._debug_log_keys if x != None]) + ']'}"
                 )
+                self.logger.info(f"Logged {self._flush_count} keys to DB.")
                 self._debug_log_keys = []
 
 

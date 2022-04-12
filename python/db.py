@@ -1,8 +1,7 @@
-import sqlite3
 import time
 import logging
 
-from sqlite3 import Error
+import psycopg
 
 import db_queries
 
@@ -12,10 +11,12 @@ logger = logging.getLogger("ductile.db")
 def create_connection(path):
     connection = None
     try:
-        connection = sqlite3.connect(path, check_same_thread=False)
-        logger.info("Connection to SQLite DB successful")
-    except Error as e:
-        logger.exception(f"Attempted to connect to Sqlite DB. The error '{e}' occurred")
+        connection = psycopg.connect(
+            "dbname=keystrokes user=postgres host=localhost port=5432 password=qsczse"
+        )
+        logger.info("Connection to Postgres DB successful")
+    except Exception as e:
+        logger.exception(f"Attempted to connect to Postgres DB. Exception: {e}")
     return connection
 
 
@@ -24,13 +25,21 @@ def execute_query(connection, query, params):
     result = None
     try:
         cursor.execute(query, params)
-        result = cursor.fetchall()
-        connection.commit()
-        return result
     except Error as e:
         logger.exception(
-            f"Attempted to execute SQL query. Query: {query}. The error '{e}' occurred"
+            f"Attempted to execute SQL query. Query: {query}. Exception: {e}"
         )
+        return
+    try:
+        result = cursor.fetchall()
+    except psycopg.ProgrammingError as e:
+        # logger.debug(
+        #     f"Attempted to FetchAll in SQL query with no results. Query: {query}. Exception: {e}"
+        # )
+        pass
+
+    connection.commit()
+    return result
 
 
 def execute_multiple_queries(connection, queries):
@@ -39,11 +48,20 @@ def execute_multiple_queries(connection, queries):
     for query, params in queries:
         try:
             cursor.execute(query, params)
-            results.append(cursor.fetchall())
-        except Error as e:
+        except psycopg.ProgrammingError as e:
             logger.exception(
-                f"Attempted to execute multiple SQL queries.  Queries: {queries}  The error '{e}' occurred"
+                f"Attempted to execute multiple SQL queries.  Queries: {queries}  Exception: {e}"
             )
+            return
+        try:
+            result = cursor.fetchall()
+        except psycopg.ProgrammingError as e:
+            # logger.debug(
+            #     f"Attempted to FetchAll in SQL query with no results. Query: {query}. Exception: {e}"
+            # )
+            results.append([])
+            continue
+        results.append(result)
     connection.commit()
     return results
 
